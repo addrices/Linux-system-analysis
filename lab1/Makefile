@@ -1,8 +1,8 @@
 cc = gcc
 prom = njush
-source = main.c
+source = main.c shell.c
 dep = shell.h
-obj = main.o
+obj = main.o shell.o
 
 $(prom):$(obj)
 	$(cc) -o $(prom) $(obj)
