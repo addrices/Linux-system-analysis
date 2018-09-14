@@ -14,5 +14,8 @@ play: $(prom)
 	./$(prom)
 
 clean:
-	rm -rf $(obj) $(prom)
+	rm -rf $(obj) $(prom) test
+
+debug:
+	gcc -o test $(source) -g
 
