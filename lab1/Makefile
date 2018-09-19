@@ -16,6 +16,12 @@ play: $(prom)
 clean:
 	rm -rf $(obj) $(prom) test
 
-debug:
+cleanall:
+	rm -rf $(obj) $(prom) test hello hello2 g
+
+debug:$(obj)
 	gcc -o test $(source) -g
 
+hello:hello.c hello2.c
+	gcc -o hello hello.c
+	gcc -o hello2 hello2.c

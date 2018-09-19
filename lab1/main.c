@@ -5,9 +5,14 @@
 int main(){
 	char prompt[MAX_PROMPT];
 	char command[MAX_COMMAND];
+	char process[3][64];
+	extern char pathname[128];
 	hist_begin = 0;
 	hist_end = 0;
 	hist_num = 0;
+	int process_num = 0;
+	int file_num = 0;
+	char file_name[64];
 	while(1){
 			get_prompt(prompt);
 			printf("%s ",prompt);
@@ -21,16 +26,6 @@ int main(){
 			}
 			else if(read_s == 2)
 				continue;
-/*			pid_t pid = fork();
-			if(pid == -1)
-				printf("fork error\n");
-			else if(pid != 0){
-				int status;
-				waitpid(pid, &status, 0);
-			}
-			else{
-//				printf("welcome child process!\n");
-			}*/
 	}
 	return 0;
 }
