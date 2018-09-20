@@ -1,0 +1,4 @@
+https://github.com/vvy/wshell
+    这是一个shell程序，我的cd，ls的命令的实现和路径的实现是通过这个项目学习的。
+https://blog.csdn.net/qq_24451605/article/details/49390029
+    我的管道的编写是学习了这个博客后加以改进得到的，使用递归实现的方法。
