@@ -18,8 +18,8 @@ int main()
 	struct prinfo buffer[256];
 	int b;
 	int num;
-	int ret = syscall(325,&buffer,&b);
-	printf("test syscall hello\n");
+	int ret = syscall(325,&buffer,&b);	//按深度优先遍历的顺序将进程数放到该数组中。b表示其在递归树中的深度。
+	printf("test syscall hello\n");		
 	printf("%d process\n",b);
 	for(int i = 0; i < (64>b?b:64); i++){
 		num = buffer[i].num;
@@ -28,8 +28,5 @@ int main()
 			printf("  ");
 		printf("%s,%d,%ld,%d,%d,%d,%ld\n", buffer[i].comm, buffer[i].pid, buffer[i].state, buffer[i].parent_pid, buffer[i].first_child_pid, buffer[i].next_sibling_pid, buffer[i].uid);
 	}
-	//printf("parend_pid %d\n pid %d\n first_child_pid %d\n next_sibling_pid %d\n\
-state %ld\n uid %ld\ncomm %s\n", (int)buffer[0].parent_pid, (int)buffer[0].pid, (int)buffer[0]\
-.first_child_pid, (int)buffer[0].next_sibling_pid, buffer[0].state, buffer[0].uid, buffer[0].comm);
 	return 0;
 }

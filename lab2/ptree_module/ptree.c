@@ -41,7 +41,8 @@ static unsigned long **find_sys_call_table(void) {
 	return NULL;
 }
 
-static int sys_ptree_reduce(struct task_struct *root,struct prinfo *buf, int *nr, int num){
+//递归地获得进程树上各节点的描述符
+static int sys_ptree_reduce(struct task_struct *root,struct prinfo *buf, int *nr, int num){		
 	struct prinfo a;
 	struct list_head *point = root->children.next;
 	struct task_struct *process;
@@ -74,18 +75,18 @@ static int sys_ptree_reduce(struct task_struct *root,struct prinfo *buf, int *nr
 	return 0;
 }
 
-static int sys_ptree(struct prinfo *buf, int *nr){	
-	struct prinfo a;
-	struct list_head *point = init_task.children.next;
+static int sys_ptree(struct prinfo *buf, int *nr){
+	struct prinfo a;			
+	struct list_head *point = init_task.children.next;		//双向链表组织，point指向子节点
 	struct task_struct *process;
 	if(buf == NULL)
 		return -EINVAL;
-	a.pid = init_task.pid;
-	a.parent_pid = -1; // a.parent_pid = init_task.parent->pid;
+	a.pid = init_task.pid;									
+	a.parent_pid = -1; 										// a.parent_pid = init_task.parent->pid;
 	a.state = init_task.state;
 	a.uid = init_task.cred->uid.val;
 	a.num = 0;
-	if(init_task.children.next == &init_task.children){
+	if(init_task.children.next == &init_task.children){		//子进程为０个，有一个头节点
 		a.first_child_pid = -1;
 	}
 	else
@@ -96,14 +97,14 @@ static int sys_ptree(struct prinfo *buf, int *nr){
 	else
 		a.next_sibling_pid = list_entry(init_task.sibling.next,struct task_struct, sibling)->pid;
 	strcpy(a.comm, init_task.comm);
-	copy_to_user(buf,&a,sizeof(struct prinfo));
+	copy_to_user(buf,&a,sizeof(struct prinfo));				//将内核信息打印到内核态。
 	*nr = 1;
 	printk(KERN_INFO "sys_ptree\n");
 	printk(KERN_INFO "%d",*nr);
-	while(point != &init_task.children){
+	while(point != &init_task.children){					//打印除了init_task以外的进程的节点
 		process = list_entry(point,struct task_struct, sibling);
 		sys_ptree_reduce(process, buf, nr, 1);
-		point = point->next;
+		point = point->next;								
 	}
 	return 0;
 }
