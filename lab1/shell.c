@@ -2,18 +2,17 @@
 const int max_command_len = 64;
 const int max_para_len = 64;
 
-void get_prompt(char *prompt)
+void get_prompt()
 {
-    extern char pathname[128];
+    extern char pathname[128];	//
 	extern struct passwd *pwd;
 	pwd = getpwuid(getuid());
-	//printf("pwd %s\n",pwd->pw_dir);
     getcwd(pathname,128);
-    sprintf(prompt,"$%s",pathname);
+	printf("$%s",pathname);
     return;
 }
 
-int get_command(char *command)
+int get_command()
 {
 	extern char history_instr[100][128];
 	extern int hist_begin;
@@ -21,11 +20,11 @@ int get_command(char *command)
 	extern int hist_num;
 	char input[max_command_len];
 	char parameter[max_para_len];
-	char exit_[4] = {'e','x','i','t'};
-	char cd[2] = {'c','d'};
-	char history[7] = {'h','i','s','t','o','r','y'};
-	char run[3] = {'.','/'};
-	char ls[2] = {'l','s'};
+//	char exit_[4] = {'e','x','i','t'};
+//	char cd[2] = {'c','d'};
+//	char history[7] = {'h','i','s','t','o','r','y'};
+//	char run[3] = {'.','/'};
+//	char ls[2] = {'l','s'};
 	fgets(input,64,stdin);
 	if (clean_blank_2(input) == 1)
 		return 2;
@@ -37,12 +36,10 @@ int get_command(char *command)
 		hist_num++;
 	if (hist_begin == hist_end)
 		hist_begin = (hist_begin + 1) % 100;
-	//printf("input %s.",input);
-	//printf("out %d \n",strlen(input));
-	if (strncmp(input,exit_,4) == 0 && strlen(input) == 4){
+	if (strncmp(input,"exit",4) == 0 && strlen(input) == 4){		//由于命令可能不止只有exit四个字符
 		printf("exit\n");
 		return -1;
-	} else if (strncmp(input,cd,2) == 0){
+	} else if (strncmp(input,"cd",2) == 0){
 		//printf("cd\n");
 		strncpy(parameter,input+2,strlen(input)-2);
 		parameter[strlen(input)-2] = '\0';
@@ -57,10 +54,10 @@ int get_command(char *command)
 			parameter[0] = '/';
 			return cds(parameter);
 		}	
-	} else if (strncmp(input,ls,2) == 0){
+	} else if (strncmp(input,"ls",2) == 0){
 		//printf("ls\n");
 		return lss();
-	} else if (strncmp(input,history,7) == 0){
+	} else if (strncmp(input,"history",7) == 0){
 		//printf("history\n");
 		strncpy(parameter,input+7,strlen(input)-7);
 		parameter[strlen(input)-7] = '\0';
@@ -99,7 +96,7 @@ int get_command(char *command)
 			return 0;
 		}
 	}
-	else if(strncmp(input,run,2) == 0){
+	else if(strncmp(input,"./",2) == 0){
 		printf("run\n");
 		int process_num = 1;
 		char process[3][64];
@@ -170,32 +167,28 @@ int get_command(char *command)
 		return 0;
 	} else
 		return 1;
-		//	printf("INPUT %s\n",input);
 	return 0;
 }
 
 int pipe_redict(int process_num,char process[][64],bool file_num,char *file_name)
 {
-	//sleep(3);
 	extern char pathname[128];
-	if (process_num == 1){
-		char * argv[] = {process[0]+1,0};
+	if (process_num == 1){							//只有一个进程需要执行
+		char * argv[] = {process[0]+1,0};			//当前进程所需要的管道参数
 		char run_pro[64];
 		sprintf(run_pro,"%s/%s",pathname,process[0]+1);
-		//printf("pa%s.\n",run_pro);
 		int status = 0;
-		pid_t pid = fork();
+		pid_t pid = fork();							//fork出一个进程给子程序运行
 		if (pid == 0){
 			if (file_num == false){
 				if(execvp(run_pro,argv) == -1)
 					printf("run error\n");
 			} else {
-				//printf("file %s.\n",file_name+1);
 				int fd = open(file_name + 1,O_WRONLY);
 				if(fd == -1)
 					printf("worry file\n");
 				else{
-					dup2(fd,1);
+					dup2(fd,1);						//将输出文件重定位一下
 					execvp(run_pro,argv);
 				}
 			}
@@ -208,11 +201,15 @@ int pipe_redict(int process_num,char process[][64],bool file_num,char *file_name
 		char * argv[] = {process[0]+1,0};
 		char run_pro[64];
 		sprintf(run_pro,"%s/%s",pathname,process[0]+1);
-	//	printf("pa%s.\n",run_pro);
  		pipe(pipe_fd);
 		pid_t child1,child2;
-		if ((child1 = fork()) != 0){
-			if ((child2 = fork()) == 0){
+/*
+需要fork出2个子进程，第一个子进程的输出和第二个子进程的输入相连
+将第一个程序放在第一个子进程中执行，同时在第二个子进程中递归执行之
+后的程序，可以形成一个树状的进程树。
+*/
+		if ((child1 = fork()) != 0){		
+			if ((child2 = fork()) == 0){	
 				close(pipe_fd[0]);
   	    		close(1);
 				dup2(pipe_fd[1],1);
@@ -286,11 +283,10 @@ int clean_blank_1(char *input)
 	return 0;
 }
 
-int cds(char *parameter)
+/*int cds(char *parameter)
 {
     extern char pathname[128];
 	extern struct passwd *pwd;
-	//printf("cd call\n");
 	char *cd_path;
 	if (parameter[0] == ' ' && parameter[1] == '\0'){
 		cd_path = malloc(strlen(pwd->pw_dir)+1);
@@ -302,7 +298,26 @@ int cds(char *parameter)
 		strncpy(cd_path+strlen(pathname),parameter,strlen(parameter));
 		cd_path[strlen(pathname)+strlen(parameter)] = '\0';
 	}
-//	printf("cd_path %s\n",cd_path);
+	if (chdir(cd_path) != 0)
+		printf("cd: %s:error\n",cd_path);
+	free(cd_path);
+	return 0;
+}*/
+
+int cds(char *parameter)
+{
+    extern char pathname[128];
+	extern struct passwd *pwd;
+	char *cd_path;
+	if (parameter[0] == ' ' && parameter[1] == '\0'){		//直接到当前用户的根目录
+		cd_path = pwd->pw_dir;
+	}
+	else if (parameter[0] == '/'){							//将路径和需要打开的目录拼接起来
+		cd_path = malloc(strlen(pathname)+strlen(parameter)+1);
+		strcpy(cd_path,pathname);
+		strncpy(cd_path+strlen(pathname),parameter,strlen(parameter));
+		cd_path[strlen(pathname)+strlen(parameter)] = '\0';	
+	}
 	if (chdir(cd_path) != 0)
 		printf("cd: %s:error\n",cd_path);
 	free(cd_path);
@@ -312,11 +327,11 @@ int cds(char *parameter)
 int lss()
 {
 	extern char pathname[128];
-	DIR *dir = opendir(pathname);
+	DIR *dir = opendir(pathname);		//打开当前地址
 	if(dir == NULL)
 		printf("dir NULL\n");
-	struct dirent *list = NULL;
-	while((list = readdir(dir))){	
+	struct dirent *list = NULL;			
+	while((list = readdir(dir))){		//将该地址下的所有文件逐个打印出来
 		if(strcmp(list->d_name,".") == 0|| strcmp(list->d_name,"..") == 0)
 			continue;
 		printf("%s  ",list->d_name);
